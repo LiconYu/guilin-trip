@@ -36,7 +36,7 @@ nav.tabs button.on{background:var(--ink,#2b3440);border-color:var(--ink,#2b3440)
 .map-card{position:relative;background:#fff;border:1px solid var(--line,#e3e7e2);border-radius:16px;overflow:hidden;
   box-shadow:0 2px 10px rgba(40,60,40,.06)}
 svg#map{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:none;
-  cursor:grab;-webkit-tap-highlight-color:transparent}
+  cursor:grab;-webkit-tap-highlight-color:transparent;aspect-ratio:112/194.1}
 svg#map.panning{cursor:grabbing}
 .zoomctrl{position:absolute;top:10px;right:10px;z-index:5}
 .zoomctrl button{display:block;width:34px;height:34px;margin-top:6px;border:1px solid var(--line,#e3e7e2);
@@ -133,7 +133,7 @@ footer{font-size:11px;color:var(--sub,#68727e);text-align:center;padding:14px 20
           <feGaussianBlur stdDeviation="1.2"/>
         </filter>
       </defs>
-      <rect x="-12" y="0" width="112" height="194.1" fill="#eef3e9"/>
+      <rect x="-80" y="-80" width="280" height="360" fill="#eef3e9"/>
       <ellipse cx="55" cy="55" rx="30" ry="22" fill="#e3ecd8" filter="url(#soft)"/>
       <ellipse cx="30" cy="160" rx="26" ry="20" fill="#e3ecd8" filter="url(#soft)"/>
       <ellipse cx="80" cy="105" rx="22" ry="24" fill="#e7efe0" filter="url(#soft)"/>
@@ -784,6 +784,7 @@ var LG = {
 };
 function applyPlan(p){
   PLAN = p;
+  var ps = document.getElementById("planSel"); if (ps) ps.value = p;
   renderRoutes();
   filterDay(curDay);
   var nb = (p === "backup");
