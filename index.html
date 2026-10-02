@@ -610,11 +610,12 @@ function ptVB(cx, cy){
            y: vb.y + (cy - r.top)/r.height * vb.h };
 }
 function clampVB(){
+  var X0 = VB0.x, Y0 = VB0.y;
   var pad = (vb.w < VB0.w - .01) ? 6 : 0;
-  var minX = -pad, maxX = VB0.w + pad - vb.w;
+  var minX = X0 - pad, maxX = X0 + VB0.w + pad - vb.w;
   vb.x = (maxX < minX) ? (minX + maxX)/2 : Math.min(maxX, Math.max(minX, vb.x));
   var padY = (vb.h < VB0.h - .01) ? 6 : 0;
-  var minY = -padY, maxY = VB0.h + padY - vb.h;
+  var minY = Y0 - padY, maxY = Y0 + VB0.h + padY - vb.h;
   vb.y = (maxY < minY) ? (minY + maxY)/2 : Math.min(maxY, Math.max(minY, vb.y));
 }
 function zoomAt(px, py, factor){
@@ -625,7 +626,7 @@ function zoomAt(px, py, factor){
   vb.w = w1; vb.h = w1 * MAP_H / MAP_W;
   clampVB(); applyVB();
 }
-function resetView(){ vb = {x:0, y:0, w:VB0.w, h:VB0.h}; applyVB(); }
+function resetView(){ vb = {x:VB0.x, y:VB0.y, w:VB0.w, h:VB0.h}; applyVB(); }
 function vbCenter(){ return {x:vb.x + vb.w/2, y:vb.y + vb.h/2}; }
 
 /* 滚轮缩放（以鼠标位置为锚点） */
