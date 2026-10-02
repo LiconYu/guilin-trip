@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>桂林4天小众漫游导览地图 · 真实道路版</title>
+<style>
+:root{ --d1:#e8553f; --d2:#16a085; --d3:#2f6fd6; --d4:#7a8290;
+  --ink:#2b3440; --sub:#68727e; --bg:#f4f6f3; --card:#ffffff; --line:#e3e7e2; }
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  background:var(--bg,#f4f6f3);color:var(--ink,#2b3440);line-height:1.6;padding-bottom:env(safe-area-inset-bottom)}
+header{padding:16px 16px 10px;text-align:center}
+header h1{font-size:20px;letter-spacing:.5px}
+header .sub{font-size:12px;color:var(--sub,#68727e);margin-top:4px}
+.badge{display:inline-block;font-size:11px;color:#0a7d43;background:#e2f4ea;border:1px solid #bfe6d0;
+  border-radius:99px;padding:1px 10px;margin:6px 2px 0}
+nav.tabs{position:sticky;top:0;z-index:30;display:flex;justify-content:center;
+  padding:10px 8px;background:rgba(244,246,243,.95);border-bottom:1px solid var(--line,#e3e7e2)}
+nav.tabs button{font-size:14px;padding:9px 0;border:1.5px solid var(--line,#e3e7e2);flex:1;max-width:86px;
+  border-radius:99px;background:#fff;color:var(--ink,#2b3440);cursor:pointer;transition:background .15s}
+nav.tabs button + button{margin-left:8px}
+nav.tabs button .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+nav.tabs button.on{background:var(--ink,#2b3440);border-color:var(--ink,#2b3440);color:#fff}
+/* 布局：移动端单列，桌面端双列 */
+.cols{display:flex;flex-direction:column;align-items:center}
+.map-col{width:100%;max-width:560px}
+.side-col{width:100%;max-width:560px}
+@media (min-width:980px){
+  .cols{flex-direction:row;align-items:flex-start;justify-content:center;padding:6px 18px 0}
+  .map-col{flex:0 0 480px;max-width:480px;position:sticky;top:64px}
+  .side-col{flex:1 1 auto;max-width:540px}
+}
+.map-wrap{padding:10px 8px 2px}
+.map-card{position:relative;background:#fff;border:1px solid var(--line,#e3e7e2);border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(40,60,40,.06)}
+svg#map{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;touch-action:none;
+  cursor:grab;-webkit-tap-highlight-color:transparent}
+svg#map.panning{cursor:grabbing}
+.zoomctrl{position:absolute;top:10px;right:10px;z-index:5}
+.zoomctrl button{display:block;width:34px;height:34px;margin-top:6px;border:1px solid var(--line,#e3e7e2);
+  border-radius:8px;background:rgba(255,255,255,.96);font-size:17px;color:var(--ink,#2b3440);
+  cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.14);line-height:1;padding:0}
+.zoomctrl button:active{background:#e8ecea}
+.hint{font-size:12px;color:var(--sub,#68727e);text-align:center;padding:8px 16px 4px}
+section.block{margin:14px 12px;padding:14px;background:var(--card,#fff);border:1px solid var(--line,#e3e7e2);border-radius:14px}
+section.block h2{font-size:16px;margin-bottom:8px}
+h2 .en{font-size:11px;color:var(--sub,#68727e);font-weight:400;margin-left:6px}
+details.it{border:1px solid var(--line,#e3e7e2);border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff}
+details.it summary{cursor:pointer;padding:11px 13px;font-size:15px;font-weight:600;display:flex;align-items:center}
+details.it summary .tag{color:#fff;font-size:12px;font-weight:600;border-radius:6px;padding:1px 8px;margin-right:8px}
+details.it summary .chev{margin-left:auto;color:var(--sub,#68727e);font-size:13px}
+details.it .body{padding:2px 14px 12px;font-size:14px;color:#3c4650}
+details.it .body ul{padding-left:18px}
+details.it .body li{margin:4px 0}
+details.it .body .route-line{font-size:12.5px;color:var(--sub,#68727e);background:#f6f8f6;border-radius:8px;
+  padding:6px 10px;margin-top:8px}
+ul.tl{list-style:none;padding-left:2px;margin:2px 0 6px}
+ul.tl li{margin:4px 0;font-size:13.5px;padding-left:46px;position:relative}
+ul.tl b{position:absolute;left:0;top:0;font-family:Consolas,monospace;font-weight:700;color:#2b3440;min-width:42px}
+ul.tl li.half b{opacity:.55}
+.planbar{position:sticky;z-index:29;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:8px 12px;background:rgba(244,246,243,.96);border-bottom:1px solid var(--line,#e3e7e2)}
+.planbar label{font-size:12px;color:var(--sub,#68727e);margin-right:8px}
+.planbar select{font-size:14px;padding:6px 10px;border:1.5px solid var(--line,#e3e7e2);border-radius:10px;
+  background:#fff;color:var(--ink,#2b3440);max-width:82vw;font-family:inherit}
+.planbar .pn{font-size:11px;color:var(--sub,#68727e);margin-left:8px}
+table.cost{width:100%;border-collapse:collapse;font-size:13px}
+table.cost th,table.cost td{border-bottom:1px solid var(--line,#e3e7e2);padding:7px 4px;text-align:left;vertical-align:top}
+table.cost th{font-size:12px;color:var(--sub,#68727e);font-weight:600;white-space:nowrap}
+table.cost td.day{white-space:nowrap;font-weight:600}
+table.cost td.num{white-space:nowrap}
+table.cost tr.total td{border-top:2px solid var(--ink,#2b3440);font-weight:700;border-bottom:none}
+.note{font-size:12px;color:var(--sub,#68727e);margin-top:8px}
+ul.tips{padding-left:18px;font-size:14px}
+ul.tips li{margin:5px 0}
+footer{font-size:11px;color:var(--sub,#68727e);text-align:center;padding:14px 20px 26px}
+#sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;z-index:50;
+  background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom));transition:transform .22s ease-out}
+#sheet.hide{transform:translate(-50%,110%)}
+#sheet .bar{width:36px;height:4px;border-radius:2px;background:#d8dcd6;margin:0 auto 10px}
+#sheet h3{font-size:17px}
+#sheet .daytag{color:#fff;font-size:11px;font-weight:600;border-radius:5px;padding:1px 7px;margin-right:6px}
+#sheet .desc{font-size:13.5px;margin-top:6px}
+#sheet .meta{font-size:13px;margin-top:8px;color:#3c4650}
+#sheet .coord-row{display:flex;align-items:center;margin-top:10px}
+#sheet .coord{flex:1;font-size:12.5px;color:var(--sub,#68727e);background:#f4f6f3;border-radius:8px;padding:7px 10px;
+  font-family:Consolas,monospace;word-break:break-all}
+#sheet .copy{flex:none;margin-left:8px;font-size:13px;border:none;border-radius:8px;padding:8px 14px;
+  background:var(--ink,#2b3440);color:#fff}
+#sheet .close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:20px;
+  color:var(--sub,#68727e);padding:4px 8px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>桂林 · 4天小众漫游导览</h1>
+  <div class="sub">临桂大本营 · 老城扫街 · 会仙山水 · 单人慢游</div>
+  <div class="badge">离线可用 · 路线为真实道路轨迹（已内嵌）</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-day="0" class="on"><span class="dot" style="background:#9aa4ad"></span>全部</button>
+  <button data-day="1"><span class="dot" style="background:#e8553f"></span>Day1</button>
+  <button data-day="2"><span class="dot" style="background:#16a085"></span>Day2</button>
+  <button data-day="3"><span class="dot" style="background:#2f6fd6"></span>Day3</button>
+  <button data-day="4"><span class="dot" style="background:#7a8290"></span>Day4</button>
+</nav>
+<div class="planbar" id="planbar">
+  <label for="planSel">出行方案</label>
+  <select id="planSel">
+    <option value="normal">正常方案（原计划）</option>
+    <option value="backup">备案1 · 雨天版</option>
+  </select>
+  <span class="pn" id="planNote">原计划 · 适合晴天出行</span>
+</div>
+
+<div class="cols">
+<div class="map-col">
+<div class="map-wrap">
+  <div class="map-card">
+    <div class="zoomctrl">
+      <button id="zin" title="放大" aria-label="放大">+</button>
+      <button id="zout" title="缩小" aria-label="缩小">−</button>
+      <button id="zreset" title="复位" aria-label="复位">⌂</button>
+    </div>
+    <svg id="map" viewBox="-12 0 112 194.1" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg" aria-label="桂林4天导览地图">
+      <defs>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.2"/>
+        </filter>
+      </defs>
+      <rect x="-12" y="0" width="112" height="194.1" fill="#eef3e9"/>
+      <ellipse cx="55" cy="55" rx="30" ry="22" fill="#e3ecd8" filter="url(#soft)"/>
+      <ellipse cx="30" cy="160" rx="26" ry="20" fill="#e3ecd8" filter="url(#soft)"/>
+      <ellipse cx="80" cy="105" rx="22" ry="24" fill="#e7efe0" filter="url(#soft)"/>
+      <!-- 喀斯特峰林示意 -->
+      <g fill="#c9d8bd" stroke="#b3c7a4" stroke-width=".2">
+        <path d="M40,22 l2.2,-4 l2.2,4 z M45,26 l1.8,-3.4 l1.8,3.4 z M52,20 l2,-3.8 l2,3.8 z M58,27 l1.7,-3.2 l1.7,3.2 z M47,33 l2,-3.6 l2,3.6 z M55,35 l1.8,-3.4 l1.8,3.4 z M63,30 l2,-3.8 l2,3.8 z M38,30 l1.7,-3.2 l1.7,3.2 z"/>
+        <path d="M8,52 l2,-3.8 l2,3.8 z M13,58 l1.8,-3.4 l1.8,3.4 z M6,64 l2,-3.6 l2,3.6 z M16,68 l1.7,-3.2 l1.7,3.2 z M10,74 l2,-3.6 l2,3.6 z"/>
+        <path d="M12,120 l2,-3.8 l2,3.8 z M8,132 l1.8,-3.4 l1.8,3.4 z M15,140 l2,-3.6 l2,3.6 z M9,148 l1.7,-3.2 l1.7,3.2 z M16,128 l1.8,-3.2 l1.8,3.2 z M6,124 l1.7,-3 l1.7,3 z"/>
+        <path d="M28,152 l2,-3.8 l2,3.8 z M42,160 l1.8,-3.4 l1.8,3.4 z M24,170 l2,-3.6 l2,3.6 z M46,174 l1.7,-3.2 l1.7,3.2 z M30,180 l2,-3.6 l2,3.6 z M50,182 l1.8,-3.4 l1.8,3.4 z M20,158 l1.7,-3 l1.7,3 z"/>
+        <path d="M84,60 l2,-3.8 l2,3.8 z M88,70 l1.8,-3.4 l1.8,3.4 z M82,80 l2,-3.6 l2,3.6 z M90,88 l1.7,-3.2 l1.7,3.2 z M78,52 l1.8,-3.2 l1.8,3.2 z"/>
+        <path d="M60,95 l2,-3.8 l2,3.8 z M68,105 l1.8,-3.4 l1.8,3.4 z M56,112 l2,-3.6 l2,3.6 z M64,120 l1.7,-3.2 l1.7,3.2 z M72,92 l1.8,-3.2 l1.8,3.2 z"/>
+      </g>
+      <!-- 漓江 -->
+      <path d="M94,0 C93,6 92.5,11 94.5,15.5 C96.5,20 98,23 97,26.5 C96.2,30 95.5,34 96.5,40 C97.6,47 99,52 100,56 L100,64 C98,72 96.5,80 97,90 C97.3,97 98,104 99,110"
+            fill="none" stroke="#aecde0" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>
+      <text x="95" y="12.6" font-size="3" fill="#5b88a6" opacity=".85" transform="rotate(70 95 12.6)">漓 江</text>
+      <!-- 区域标注 -->
+      <g id="regionlabels" font-size="3.4" fill="#7d8878" opacity=".8" font-weight="600">
+        <text x="6" y="26">临桂区</text>
+        <text x="72" y="5.5">桂林老城区</text>
+        <text x="62" y="193">会仙镇方向</text>
+      </g>
+      <g id="g-routes"></g>
+      <g id="g-spots"></g>
+      <!-- 指北针 -->
+      <g transform="translate(6,10)">
+        <circle r="3.4" fill="#ffffff" opacity=".9" stroke="#c8cec6" stroke-width=".25"/>
+        <path d="M0,-2.4 L1,1.2 L0,0.5 L-1,1.2 Z" fill="#5a6672"/>
+        <text x="0" y="-4.1" font-size="2.6" text-anchor="middle" fill="#5a6672">N</text>
+      </g>
+      <!-- 比例尺 -->
+      <g id="scalebar" transform="translate(6,191)" font-size="2.6" fill="#5a6672">
+        <rect x="0" y="-1.4" width="10" height="1.1" fill="#8b958f"/>
+        <rect x="0" y="-1.4" width="5" height="1.1" fill="#f4f6f3" stroke="#8b958f" stroke-width=".2"/>
+        <text x="0" y="-2.2">0</text>
+        <text x="10" y="-2.2" text-anchor="end">≈1.3 km</text>
+      </g>
+      <!-- 图例（固定十六进制色值，兼容旧内核） -->
+      <g id="legend" transform="translate(3,130)" font-size="2.7" fill="#5a6672">
+        <rect x="-1" y="-3.4" width="21.5" height="16.6" rx="2" fill="#ffffff" opacity=".92" stroke="#dde2da" stroke-width=".25"/>
+        <text x="0.6" y="0">图例</text>
+        <line x1="0.8" y1="3" x2="5" y2="3" stroke="#e8553f" stroke-width="1"/><text id="lg1" x="6" y="3.9">D1 会仙湿地</text>
+        <line x1="0.8" y1="6.6" x2="5" y2="6.6" stroke="#16a085" stroke-width="1"/><text id="lg2" x="6" y="7.5">D2 老城穿山</text>
+        <line x1="0.8" y1="10.2" x2="5" y2="10.2" stroke="#2f6fd6" stroke-width="1"/><text id="lg3" x="6" y="11.1">D3 罗汉山</text>
+        <line x1="0.8" y1="13.8" x2="5" y2="13.8" stroke="#7a8290" stroke-width="1"/><text id="lg4" x="6" y="14.7">D4 玻璃田</text>
+        <text x="14.6" y="9.3" font-size="2.2">虚线=步行</text>
+      </g>
+    </svg>
+  </div>
+</div>
+<p class="hint">点击标记看详情 · 滚轮/双指缩放 · 拖动平移 · 双击放大</p>
+</div>
+
+<div class="side-col">
+<section class="block" id="itinerary">
+  <h2>四天行程<span class="en">点击展开 · 含详细时间点</span></h2>
+  <p class="note" style="margin:0 0 10px">⏱ 时间为畅通预估，国庆酌情留余量（约+20-30%）；<b>加粗时刻</b>为关键动作（打车/到位）。</p>
+  <div id="plan-normal">
+  <details class="it" open>
+    <summary><span class="tag" style="background:#e8553f">Day 1</span>临桂慢生活 + 会仙湿地<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>12:00</b>到「在水一方休闲街」办入住、放行李</li>
+        <li><b>13:00</b>楼下嗦粉当午餐（约40分钟）</li>
+        <li><b>13:50</b>出门口打车 → 会仙湿地睦洞七星村（车程约38分钟）</li>
+        <li><b>14:30</b>开始逛湿地，约2.5小时：小木船穿梭峰林倒影40-60分钟（船票现场买），沿岸栈道拍照</li>
+        <li><b>17:10</b>出园，门口叫车返程（车程约38分钟）</li>
+        <li><b>18:00</b>回临桂世纪东路逛街、吃晚饭，晚上自由安排</li>
+      </ul>
+      <div class="route-line">🚕 临桂 ↔ 湿地 39.7km，约38分钟/程（原路返回）· 单程打车≈96元 · 下午顺光适合上船</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#16a085">Day 2</span>老城扫街 + 穿山落日<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>09:40</b>楼下打车 → 东西巷（临桂出发约30分钟）</li>
+        <li><b>10:10</b>东西巷 + 正阳步行街扫街，约80分钟（上午人少好拍照）</li>
+        <li><b>11:30</b>步行约300米 → 靖江王城外围城墙漫步，约45分钟（登独秀峰要门票且国庆排队，不建议）</li>
+        <li><b>12:20</b>步行/短打车去嗦粉：胜利米粉（文明路店）或石记米粉（解放西路店）</li>
+        <li><b>12:30</b>午餐 + 歇脚，约1小时</li>
+        <li><b>13:30</b>滨江路沿漓江慢走、逍遥楼一带拍照，约2小时（走累了随时打车）</li>
+        <li><b>15:40</b>打车 → 穿山公园（3.7km，约10分钟）</li>
+        <li><b>16:00</b>穿山公园约2.5小时：步道上山 + 占机位；<strong>17:45前务必到位</strong>等日落（18:15-18:30）</li>
+        <li><b>19:00</b>打车 → 文化宫美食街（3.6km，约10分钟）</li>
+        <li><b>19:10</b>晚餐 + 夜宵，烧烤米粉田螺管够</li>
+      </ul>
+      <div class="route-line">🚶 东西巷→王城 约300m步行 · 🚕 王城→穿山 3.7km · 🚕 穿山→文化宫 3.6km</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#2f6fd6">Day 3</span>罗汉山落日 + 市区烟火<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>09:30</b>金山广场早茶，慢悠悠吃到约11:00（今天上午睡到自然醒也行）</li>
+        <li><b>11:00</b>回住处午休 / 临桂逛街（躲正午暴晒）</li>
+        <li><b>15:30</b>打车 → 罗汉山（将军路橡胶机械厂旁，11.3km约15分钟）</li>
+        <li><b>15:45</b>开始登顶，台阶路约15分钟（别走野路）</li>
+        <li><b>16:00</b>山顶占机位：等日落18:15-18:30，拍高铁穿晚霞；备好水和零食</li>
+        <li><b>18:45</b>下山（约15分钟）</li>
+        <li><b>19:05</b>打车 → 文化宫（7.8km，约15分钟）</li>
+        <li><b>19:20</b>夜宵：烧烤 + 米粉</li>
+        <li><b>21:15</b>打车回临桂休息（约9km，20-30分钟）</li>
+      </ul>
+      <div class="route-line">🚕 临桂→罗汉山 11.3km≈30元 · 🚕 罗汉山→文化宫 7.8km≈22元 · 🚕 回临桂约9km≈26元</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#7a8290">Day 4</span>会仙玻璃田 + 返程<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>06:30</b>起床出发（镜面倒影在清晨；<strong>建议提前一晚约好包车，07:00楼下等</strong>）</li>
+        <li><b>07:00</b>出发 → 沐宦头村玻璃田（35.7km，约31-40分钟）</li>
+        <li><b>07:40</b>玻璃田约3小时：登龙头山30-40分钟俯瞰全景，田间栈道拍照</li>
+        <li><b>10:40</b>叫车 → 会仙镇（2.7km，约10分钟）</li>
+        <li><b>11:00</b>镇上闲逛1小时</li>
+        <li><b>12:00</b>午餐：农家菜，招牌会仙板鸭</li>
+        <li><b>13:30</b>返程（包车直接送站；打车约33km≈80元）</li>
+      </ul>
+      <div class="route-line">🚕 临桂→玻璃田 35.7km≈86元 · 🚕 玻璃田→会仙镇 2.7km≈11元 · 💡 包车半日约200-260元更省心</div>
+    </div>
+  </details>
+</div>
+<div id="plan-backup" style="display:none">
+  <details class="it">
+    <summary><span class="tag" style="background:#e8553f">Day 1</span>雨天版 · 博物馆躲雨线<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>12:00</b>到「在水一方休闲街」办入住、放行李</li>
+        <li><b>13:00</b>楼下嗦粉当午餐</li>
+        <li><b>13:40</b>打车 → 桂林博物馆·一院两馆（5.6km，约6分钟）</li>
+        <li><b>14:00</b>逛馆约2.5小时：12个展厅（明代梅瓶、桂林抗战文化、广西民族风情），全程室内；每日10:00/15:00有免费讲解</li>
+        <li><b>16:40</b>出馆，隔壁桂林图书馆/中央公园连廊走一圈（有顶，淋不到）</li>
+        <li><b>17:30</b>打车回世纪东路吃晚饭，晚上休闲街逛街</li>
+      </ul>
+      <div class="route-line">🚕 临桂 ↔ 博物馆 5.6km，约6分/程（≈13元）· 凭身份证免费入馆 · 周一闭馆（法定节假日一般正常开放）</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#16a085">Day 2</span>雨天版 · 老城骑楼逛吃<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>09:40</b>楼下打车 → 东西巷（14.1km，约14分钟）</li>
+        <li><b>10:00</b>东西巷 + 正阳步行街骑楼下扫街，约90分钟（连廊可躲雨）</li>
+        <li><b>11:30</b>雨小顺路绕靖江王城外围一圈（雨大跳过）</li>
+        <li><b>12:10</b>午餐：石记米粉或胜利米粉，饭后歇1小时</li>
+        <li><b>14:00</b>步行/短打车 → 文化宫美食街：糖水+小吃当下午茶</li>
+        <li><b>15:30</b>就近商场/书店歇脚，避开最大雨势</li>
+        <li><b>18:00</b>打车回临桂（13.3km，约14分钟），晚饭后休息</li>
+      </ul>
+      <div class="route-line">🚕 临桂→东西巷 14.1km·≈37元 · 🚶 东西巷→文化宫 约1.2km有骑楼 · 🚕 文化宫→临桂 13.3km·≈35元</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#2f6fd6">Day 3</span>雨天版 · 上午休整 + 傍晚赌日落<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>09:30</b>金山广场早茶（雨小步行去，雨大短打车），慢悠悠吃到约11:00</li>
+        <li><b>11:00</b>回住处午休，刷雷达图等雨停（转机在下午）</li>
+        <li><b>15:00</b>决策点：雨停/转小雨 → 15:30打车罗汉山；仍中雨 → 改逛临桂商场+金山夜市，把山水留给明天</li>
+        <li><b>15:45</b>罗汉山登顶约15分钟（走台阶路，雨后湿滑慢点走）</li>
+        <li><b>16:00</b>山顶等雨后云海+晚霞：日落18:15-18:30，雨后通透出片概率反而更高</li>
+        <li><b>19:05</b>打车 → 文化宫夜宵（7.8km，约10分钟）</li>
+        <li><b>21:15</b>打车回临桂（13.3km，约14分钟）</li>
+      </ul>
+      <div class="route-line">🚕 临桂→罗汉山 11.3km≈30元 · 🚕 罗汉山→文化宫 7.8km≈22元 · 🚕 回临桂 13.3km≈35元 · 若雨未停改逛吃，这三段≈87元省下</div>
+    </div>
+  </details>
+  <details class="it">
+    <summary><span class="tag" style="background:#7a8290">Day 4</span>雨天版 · 晴日窗口：玻璃田+湿地连打<span class="chev">›</span></summary>
+    <div class="body">
+      <ul class="tl">
+        <li><b>06:30</b>起床出发（镜面倒影在清晨；<strong>提前一晚约好包车，07:00楼下等</strong>）</li>
+        <li><b>07:00</b>出发 → 沐宦头村玻璃田（35.7km，约31分钟）</li>
+        <li><b>07:40</b>玻璃田约3小时：登龙头山30-40分钟俯瞰全景，田间栈道拍照</li>
+        <li><b>10:40</b>叫车 → 会仙镇（2.7km，约10分钟），镇上闲逛</li>
+        <li><b>12:00</b>午餐：农家菜，招牌会仙板鸭</li>
+        <li><b>13:30</b>打车 → 会仙湿地睦洞七星村（6.5km，约12分钟）</li>
+        <li><b>14:00</b>湿地木船约2小时：晴天峰林倒影才是精髓</li>
+        <li><b>16:30</b>出园返程送站（39.7km，约38分钟），约17:10回到临桂/车站</li>
+      </ul>
+      <div class="route-line">🚕 临桂→玻璃田 35.7km≈86元 · 🚕 →会仙镇 2.7km≈11元 · 🚕 →湿地 6.5km≈17元 · 🚕 湿地→临桂 39.7km≈96元 · 💡 当日包车约300-350元更省心</div>
+    </div>
+  </details>
+</div>
+</section>
+
+
+<section class="block">
+  <h2>通勤时间与费用<span class="en">单人 · 真实道路里程估算</span></h2>
+<div id="cost-normal">
+  <table class="cost">
+    <tr><th>天</th><th>路线（真实道路）</th><th>里程/车程</th><th>打车约</th></tr>
+    <tr><td class="day" style="color:#e8553f">D1</td><td>临桂 ↔ 会仙湿地（往返）</td><td class="num">39.7km ×2<br>约38分/程</td><td class="num">≈96 ×2</td></tr>
+    <tr><td class="day" style="color:#16a085">D2</td><td>东西巷→王城（步行）</td><td class="num">0.3km</td><td class="num">—</td></tr>
+    <tr><td></td><td>王城→穿山公园</td><td class="num">3.7km · 5分</td><td class="num">≈13</td></tr>
+    <tr><td></td><td>穿山→文化宫</td><td class="num">3.6km · 6分</td><td class="num">≈13</td></tr>
+    <tr><td class="day" style="color:#2f6fd6">D3</td><td>临桂→罗汉山</td><td class="num">11.3km · 11分</td><td class="num">≈30</td></tr>
+    <tr><td></td><td>罗汉山→文化宫（夜宵）</td><td class="num">7.8km · 10分</td><td class="num">≈22</td></tr>
+    <tr><td></td><td>文化宫→临桂（回住宿）</td><td class="num">约9km</td><td class="num">≈26</td></tr>
+    <tr><td class="day" style="color:#7a8290">D4</td><td>临桂→会仙玻璃田</td><td class="num">35.7km · 31分</td><td class="num">≈86</td></tr>
+    <tr><td></td><td>玻璃田→会仙镇（午餐）</td><td class="num">2.7km · 6分</td><td class="num">≈11</td></tr>
+    <tr><td></td><td>会仙镇→临桂（返程）</td><td class="num">约33km</td><td class="num">≈80</td></tr>
+    <tr class="total"><td>合计</td><td>全程打车</td><td class="num">≈145km</td><td class="num">≈377元起</td></tr>
+  </table>
+  <p class="note">· 打车费按起步价+约2.3元/km估算，<strong>国庆可能上浮10-20%</strong>（合计约400-480元）<br>
+  · 省钱方案：公交+打车混合约250-350元；D4包车半日约200-260元更省心<br>
+  · 车程为畅通预估，实际请留余量；临桂往返市区不建议公交（慢且挤）</p>
+</div>
+<div id="cost-backup" style="display:none">
+<table class="cost">
+  <tr><th>天</th><th>路线（真实道路）</th><th>里程/车程</th><th>打车约</th></tr>
+  <tr><td class="day" style="color:#e8553f">D1</td><td>临桂 ↔ 桂林博物馆（往返）</td><td class="num">5.6km ×2<br>约6分/程</td><td class="num">≈13 ×2</td></tr>
+  <tr><td class="day" style="color:#16a085">D2</td><td>临桂 → 东西巷</td><td class="num">14.1km · 14分</td><td class="num">≈37</td></tr>
+  <tr><td></td><td>东西巷→文化宫（步行）</td><td class="num">约1.2km</td><td class="num">—</td></tr>
+  <tr><td></td><td>文化宫 → 临桂</td><td class="num">13.3km · 14分</td><td class="num">≈35</td></tr>
+  <tr><td class="day" style="color:#2f6fd6">D3</td><td>临桂 → 罗汉山（赌日落）</td><td class="num">11.3km · 11分</td><td class="num">≈30</td></tr>
+  <tr><td></td><td>罗汉山→文化宫（夜宵）</td><td class="num">7.8km · 10分</td><td class="num">≈22</td></tr>
+  <tr><td></td><td>文化宫→临桂（回住宿）</td><td class="num">13.3km · 14分</td><td class="num">≈35</td></tr>
+  <tr><td class="day" style="color:#7a8290">D4</td><td>临桂→会仙玻璃田</td><td class="num">35.7km · 31分</td><td class="num">≈86</td></tr>
+  <tr><td></td><td>玻璃田→会仙镇（午餐）</td><td class="num">2.7km · 6分</td><td class="num">≈11</td></tr>
+  <tr><td></td><td>会仙镇→会仙湿地</td><td class="num">6.5km · 12分</td><td class="num">≈17</td></tr>
+  <tr><td></td><td>湿地→临桂（返程送站）</td><td class="num">39.7km · 38分</td><td class="num">≈96</td></tr>
+  <tr class="total"><td>合计</td><td>全程打车</td><td class="num">≈156km</td><td class="num">≈395元起</td></tr>
+</table>
+<p class="note">· 雨天版逻辑：有雨的日子走室内逛吃线，把会仙山水集中到晴日窗口（如10/5）<br>
+· 打车费按起步价+约2.3元/km估算，<strong>国庆可能上浮10-20%</strong>（合计约435-475元）<br>
+· D4强度大（玻璃田+湿地连打），建议当日包车约300-350元；D3雨未停改逛吃可省≈87元</p>
+</div>
+</section>
+
+<section class="block">
+  <h2>美食清单<span class="en">沿途有吃的</span></h2>
+  <ul class="tips">
+    <li><strong>米粉</strong>：胜利米粉（文明路店）、石记米粉（解放西路店）、老盐街米粉、明桂米粉</li>
+    <li><strong>特色</strong>：王府马肉粉、油茶（"中国咖啡"）</li>
+    <li><strong>家常菜</strong>：啤酒鱼/剑骨鱼、酸笋炒牛肉、爆炒漓江虾、会仙板鸭</li>
+    <li><strong>小吃</strong>：桂花糕、马蹄糕、桂林田螺</li>
+    <li><strong>夜宵</strong>：文化宫美食街、烧烤+米粉</li>
+  </ul>
+</section>
+
+<section class="block">
+  <h2>避坑提醒</h2>
+  <ul class="tips">
+    <li>国庆热门点别去：象鼻山、两江四湖游船、阳朔西街、漓江杨堤-兴坪竹筏</li>
+    <li>日落约 18:15-18:30，落日点提前40分钟到</li>
+    <li>天气决定出片，阴雨天改逛吃</li>
+    <li>临桂往返市区建议打车，公交慢且挤</li>
+    <li>罗汉山、龙头山别走野路，走有台阶的路</li>
+  </ul>
+</section>
+</div>
+</div>
+
+<footer>
+  路线为真实道路轨迹（OSRM/OSM路网），抓取后内嵌于本文件，<br>
+  离线可用 · 需要导航时复制经纬度到地图App搜索 · 生成于 2026-10-01
+</footer>
+
+<div id="sheet" class="hide">
+  <div class="bar"></div>
+  <button class="close" id="sheetClose">×</button>
+  <h3 id="shName"></h3>
+  <div class="desc" id="shDesc"></div>
+  <div class="meta" id="shMeta"></div>
+  <div class="coord-row">
+    <div class="coord" id="shCoord"></div>
+    <button class="copy" id="shCopy">复制</button>
+  </div>
+</div>
+
+<script>
+const MAP_H=194.1;
+const ROUTE_GEO={
+leg_d1:{d:"M21.0,35.5L22.2,35.6L22.0,36.2L21.7,36.6L21.3,36.4L19.3,34.5L17.9,33.3L17.5,33.1L17.1,33.5L16.3,34.4L14.0,37.2L13.5,37.9L12.3,39.2L11.4,39.9L9.9,41.1L9.2,41.6L9.0,41.9L8.6,42.3L7.9,43.5L6.6,46.0L6.0,47.2L5.1,49.0L3.7,51.6L3.8,52.2L9.9,55.4L14.8,58.0L20.2,61.0L23.4,62.1L27.2,62.8L31.5,63.6L32.8,63.6L34.2,63.1L35.7,62.8L37.8,63.6L39.2,64.0L42.8,63.3L46.8,63.1L50.9,63.1L53.8,63.0L58.4,64.0L65.0,63.5L68.4,62.5L70.6,62.3L77.2,63.2L78.9,64.5L78.9,67.5L78.9,68.5L78.9,70.5L79.0,74.2L79.0,75.2L79.2,76.3L79.6,78.5L79.7,79.0L80.5,82.1L80.9,83.6L81.4,86.0L81.4,87.1L80.8,91.0L80.5,93.2L80.7,95.3L81.8,98.5L82.3,100.3L82.4,101.9L82.1,103.8L81.9,106.2L81.9,108.3L82.0,109.2L82.1,111.8L82.1,114.7L82.0,119.7L83.1,126.5L83.6,129.2L84.1,132.4L84.4,134.8L84.5,138.2L84.4,141.4L84.3,145.5L84.5,148.2L85.0,151.3L85.2,153.0L86.0,156.1L84.4,156.2L81.4,156.4L78.1,156.5L75.9,156.7L73.9,157.3L73.4,157.6L71.3,158.7L70.1,159.4L69.2,160.0L68.3,160.1L65.2,159.9L64.6,160.1L64.2,160.3L63.6,161.0L62.4,164.8L61.7,166.0L58.0,170.7L56.1,172.3L54.0,173.6L48.4,175.1L46.5,175.4L45.1,175.3L44.3,175.4L41.6,176.6L38.3,177.2L33.1,178.0L31.0,178.1L30.2,178.2L29.6,178.5L27.0,180.4L26.3,181.1L26.0,181.7L25.4,182.2L24.3,180.0L24.1,177.8L22.7,176.2L18.4,171.5L16.4,167.1L17.1,167.0L17.8,166.7L17.9,166.3L17.6,165.9L17.9,165.0L18.4,164.7L18.4,164.2L19.0,163.8L19.5,163.6L19.8,164.0",km:39.7,min:38},
+leg_d2a:{d:"M87.8,10.6L87.8,10.5L88.5,9.4L89.3,8.0L89.3,8.0L89.3,8.0L89.0,7.8L89.0,7.8L89.0,7.7L88.9,7.7L88.9,7.7L88.9,7.6L88.9,7.6L88.9,7.6L88.9,7.5L89.0,7.5L89.0,7.4L89.1,7.3L89.1,7.2L89.1,7.2L89.5,7.3L89.8,7.4L90.3,7.6L91.2,7.9L91.5,8.0L91.6,8.0L91.9,8.1L93.0,8.5L92.5,9.4L92.3,9.9L91.7,11.1L91.6,11.2L91.5,11.6L91.3,12.6L91.2,12.7L91.3,12.7L91.5,12.8L92.1,12.9L92.5,12.9L93.0,13.1L96.3,14.3L96.3,14.3L96.3,17.9L96.3,18.1L96.2,18.2L96.2,18.2L96.2,18.2L96.2,21.1L96.2,21.2L96.2,21.5L96.2,21.7L96.2,21.8L96.2,21.9L96.2,22.0L96.2,22.2L96.2,23.5L96.1,24.2L95.7,24.3L95.7,24.2",km:3.7,min:4},
+leg_d2b:{d:"M95.7,24.2L95.7,24.3L96.1,24.2L96.2,24.2L96.2,23.9L96.2,23.5L96.2,22.8L96.3,22.2L96.3,22.0L96.3,21.9L96.3,21.8L96.3,21.7L96.3,21.5L96.3,21.2L96.3,18.2L96.3,18.2L96.3,18.2L96.3,18.2L96.3,18.1L96.3,18.1L96.3,17.9L96.3,14.3L96.3,14.3L96.3,14.2L95.8,14.0L93.0,13.0L92.5,12.9L92.4,12.9L92.3,12.8L92.1,12.8L91.5,12.7L91.3,12.6L91.6,11.5L91.7,11.2L91.8,10.9L92.6,9.4L93.0,8.5L93.1,8.4L93.0,8.4L93.0,8.5L92.5,9.4L92.3,9.9L91.7,11.1L91.6,11.2L91.5,11.2L91.5,11.2L91.4,11.2L91.4,11.1L91.3,11.1L91.1,11.2L91.0,11.2L90.7,11.3L90.4,11.3L90.3,11.4L90.2,11.5L90.2,11.5L90.1,11.7L90.0,11.8L89.8,11.9L89.8,11.9L89.8,12.0L89.8,12.1L89.7,12.2L89.5,13.1L89.4,13.2L89.2,13.3L89.2,13.4",km:3.6,min:6},
+leg_d3a:{d:"M21.0,35.5L21.7,35.5L22.2,35.6L22.3,35.7L22.0,36.2L21.9,36.5L21.7,36.6L21.5,36.8L21.3,36.4L21.0,36.0L19.3,34.5L18.6,33.9L18.0,33.3L17.9,33.2L17.9,33.1L17.9,32.9L18.2,32.5L18.7,32.2L19.2,31.9L19.9,31.7L20.5,31.7L21.5,31.6L21.9,31.5L22.3,31.4L23.3,31.2L24.4,30.7L25.7,30.1L26.1,30.0L26.5,29.6L27.1,28.8L27.6,27.8L28.2,26.6L28.4,26.2L28.6,25.9L29.1,24.7L29.4,24.1L29.7,23.6L29.8,23.4L30.2,23.5L30.7,23.6L31.3,23.6L31.6,23.6L32.0,23.5L33.3,23.2L35.3,23.0L36.7,22.8L38.3,22.2L40.0,21.6L42.3,20.7L42.8,20.5L43.5,20.4L44.4,20.4L46.0,20.7L47.8,21.2L49.0,21.5L50.2,21.7L51.8,21.7L52.9,21.7L54.0,21.5L54.6,21.4L55.1,21.4L56.0,21.2L60.8,20.6L62.1,20.5L65.8,20.5L66.1,20.5L69.0,20.5L69.5,20.5L69.9,20.7L70.2,20.9L70.8,21.4L71.2,21.7L71.5,21.9L72.0,22.1L72.6,22.1L73.1,22.1L73.4,22.2L73.5,22.4L73.5,22.6L73.4,23.5L73.4,24.0L73.5,24.5L73.6,24.7L73.8,25.8L74.0,26.3L74.2,27.4L74.3,27.9L74.3,28.3L74.5,29.4L74.6,30.0L74.6,30.9L74.5,31.3L74.3,32.3L73.8,34.7L73.6,35.4L73.5,35.8L73.4,37.0L73.2,37.3L72.7,37.3",km:11.3,min:11},
+leg_d3b:{d:"M72.7,37.3L73.3,37.3L73.2,37.6L73.1,38.3L72.8,39.0L72.6,39.6L72.4,40.3L72.7,40.3L72.9,39.4L73.1,38.3L73.4,37.3L73.5,36.6L73.7,35.3L74.1,33.7L74.4,32.2L74.8,32.0L75.5,31.8L76.2,31.7L76.3,31.7L76.4,31.6L76.4,31.0L76.4,30.1L76.4,29.0L76.4,28.5L76.3,27.9L76.2,27.3L76.1,26.7L76.0,26.4L76.0,25.9L76.0,25.2L76.1,24.0L76.1,23.5L76.1,22.5L76.1,21.9L76.1,21.2L76.1,20.7L76.1,20.5L76.2,20.0L76.3,19.7L76.6,19.1L77.1,17.8L77.9,16.0L78.0,15.8L78.2,15.6L78.3,15.5L78.4,15.3L78.8,15.0L79.3,14.5L79.6,14.3L79.8,14.3L80.1,14.5L80.6,14.7L81.0,14.9L82.4,14.9L83.0,14.9L83.1,15.0L83.3,15.0L83.6,15.1L83.9,15.1L84.4,15.1L84.8,15.1L85.0,14.9L85.1,14.7L85.2,14.3L85.3,13.8L86.3,11.7L86.7,11.8L87.0,11.7L87.2,11.6L87.8,10.5L89.3,8.0L89.3,8.0L89.0,7.8L88.9,7.7L88.9,7.6L88.9,7.6L89.0,7.5L89.1,7.3L89.1,7.2L89.8,7.4L91.2,7.9L91.6,8.0L93.0,8.5L92.3,9.9L91.6,11.2L91.5,11.2L91.4,11.1L91.1,11.2L90.7,11.3L90.3,11.4L90.2,11.5L90.0,11.8L89.8,11.9L89.8,12.1L89.5,13.1L89.2,13.3L89.2,13.4",km:7.8,min:10},
+leg_d4a:{d:"M21.0,35.5L22.2,35.6L22.0,36.2L21.7,36.6L21.3,36.4L19.3,34.5L17.9,33.3L17.5,33.1L17.1,33.5L16.3,34.4L14.0,37.2L13.5,37.9L12.3,39.2L11.4,39.9L9.9,41.1L9.2,41.6L9.0,41.9L8.6,42.3L7.9,43.5L6.6,46.0L6.0,47.2L5.1,49.0L3.7,51.6L3.8,52.2L9.9,55.4L14.8,58.0L20.2,61.0L23.4,62.1L27.2,62.8L31.5,63.6L32.8,63.6L34.2,63.1L35.7,62.8L37.8,63.6L39.2,64.0L42.8,63.3L46.8,63.1L50.9,63.1L53.8,63.0L58.4,64.0L65.0,63.5L68.4,62.5L70.6,62.3L77.2,63.2L78.9,64.5L78.9,67.5L78.9,68.5L78.9,70.5L79.0,74.2L79.0,75.2L79.2,76.3L79.6,78.5L79.7,79.0L80.5,82.1L80.9,83.6L81.4,86.0L81.4,87.1L80.8,91.0L80.5,93.2L80.7,95.3L81.8,98.5L82.3,100.3L82.4,101.9L82.1,103.8L81.9,106.2L81.9,108.3L82.0,109.2L82.1,111.8L82.1,114.7L82.0,119.7L83.1,126.5L83.6,129.2L84.1,132.4L84.4,134.8L84.5,138.2L84.4,141.4L84.3,145.5L84.5,148.2L85.0,151.3L85.2,153.0L86.0,156.1L84.4,156.2L81.4,156.4L78.1,156.5L75.9,156.7L73.9,157.3L73.4,157.6L71.3,158.7L70.1,159.4L69.2,160.0L68.3,160.1L65.2,159.9L64.6,160.1L64.2,160.3L63.6,161.0L62.4,164.8L61.7,166.0L58.0,170.7L56.1,172.3L54.0,173.6L48.4,175.1L46.5,175.4L45.1,175.3L44.3,175.4L41.6,176.6L38.3,177.2L34.7,174.0L34.5,171.8",km:35.7,min:31},
+leg_d4b:{d:"M34.5,171.8L34.7,171.8L34.7,173.5L34.7,174.0L34.7,174.6L34.6,177.8L33.8,177.9L33.8,178.3L33.8,178.8L33.9,179.2L33.9,179.3L33.9,179.5L33.7,179.5L33.3,179.9L32.8,180.4L32.8,180.7L32.3,181.4L31.9,181.8L31.8,181.9L31.8,182.0L32.1,182.9L32.7,183.7L33.1,184.4L33.1,184.7L33.2,185.2L33.2,185.5L33.4,185.8L33.8,186.1L34.1,186.2L34.5,186.3L35.2,186.5L35.6,186.5L36.0,186.7L36.8,186.8L37.2,186.9L37.3,186.9L37.6,186.9",km:2.7,min:6}
+};
+const SPOTS_GEO={
+stay:{x:21,y:35.5},
+shidi:{x:20.8,y:163.4},
+dongxi:{x:90.3,y:11.5},
+wangcheng:{x:88,y:10.7},
+chuanshan:{x:95.6,y:24.2},
+wenhuagong:{x:89.5,y:14},
+luohanshan:{x:72.7,y:36.8},
+bolichang:{x:34.5,y:171.8},
+huixianzhen:{x:38.3,y:184.5}
+};
+var MAP_W=112;
+var ROUTE_B={
+bm:{d:"M21,35.5L21.2,35.5L21.7,35.5L22.2,35.5L22.2,35.6L22.3,35.7L22.3,35.8L22.2,36L22,36.3L21.9,36.4L21.9,36.5L21.8,36.5L21.7,36.6L21.5,36.7L21.5,36.8L21.4,36.7L21.3,36.4L21.2,36.2L21,36L20.1,35.2L19.3,34.5L19,34.2L18.6,33.9L18,33.4L17.9,33.4L17.8,33.3L17.6,33.2L17.5,33.2L17.5,33.1L17.3,33L17.3,33L17,32.9L16.9,32.8L16.9,32.8L16.7,32.8L16.6,32.7L16.3,32.7L15.9,32.6L15.9,32.6L15.6,32.5L15.6,32.5L15.4,32.5L15.4,32.5L14.8,32.5L14.2,32.4L13.3,32.3L13,32.3L12.7,32.3L10.8,32.1L9.2,32.1L9.2,32L8.2,32L7.7,31.9L7,31.9L6.1,31.8L4.8,31.7L4.8,31.7L3.3,31.6L2.7,31.6L1.9,31.6L1.5,31.5L0.6,31.5L0.4,31.4L0.2,31.4L0.1,31.4L-0.2,31.4L-0.4,31.4L-1,31.3L-1.1,31.3L-1.4,31.3L-1.5,31.3L-1.6,31.3L-2.1,31.2L-2.7,31.2L-3,31.2L-4.5,31.1L-4.7,31.1L-4.8,31.1L-5,31.1L-5.4,31L-6.9,30.9L-7,30.9L-8.7,30.8L-10.3,30.7L-10.9,30.7L-11.3,30.7L-11.4,30.7L-11.4,30.8L-11.3,30.8L-10.9,30.8L-10.3,30.9L-8,31L-6.4,31.1",km:5.6,min:6},
+ot:{d:"M21,35.5L21.2,35.5L21.7,35.5L22.2,35.5L22.2,35.6L22.3,35.7L22.3,35.8L22.2,36L22,36.3L21.9,36.4L21.9,36.5L21.8,36.5L21.7,36.6L21.5,36.7L21.5,36.8L21.4,36.7L21.3,36.4L21.2,36.2L21,36L20.1,35.2L19.3,34.5L19,34.2L18.6,33.9L18,33.4L18,33.4L17.9,33.3L17.9,33.2L17.9,33.1L17.9,33.1L17.9,33L17.9,33L17.9,32.8L18.2,32.6L18.4,32.4L18.7,32.2L18.9,32.1L19.2,32L19.5,31.9L19.9,31.8L20.2,31.7L20.5,31.7L20.8,31.7L21.5,31.6L21.7,31.5L21.9,31.5L22,31.5L22.3,31.4L22.7,31.3L23.3,31.2L23.8,31L24.4,30.7L25.2,30.4L25.7,30.2L25.7,30.1L26.1,30L26.4,29.7L26.5,29.6L26.8,29.3L27.1,28.8L27.3,28.5L27.6,27.8L27.7,27.5L28.2,26.6L28.3,26.4L28.4,26.2L28.5,26L28.6,25.9L29,25L29.1,24.8L29.2,24.5L29.4,24.2L29.5,24L29.7,23.7L29.7,23.5L29.8,23.4L30.1,23.5L30.2,23.5L30.5,23.6L30.7,23.6L31,23.7L31.3,23.7L31.6,23.6L31.6,23.6L31.7,23.6L32,23.5L32.6,23.4L33.3,23.3L34.3,23.1L35.3,23L36.2,22.9L36.7,22.8L37.2,22.7L38.3,22.3L39.1,22L40,21.6L41.6,21L42.3,20.7L42.6,20.6L42.8,20.5L43.3,20.5L43.5,20.4L43.9,20.4L44.4,20.4L44.9,20.5L46,20.8L47.3,21.1L47.8,21.2L48.5,21.4L49,21.5L49.4,21.6L50.2,21.7L50.9,21.7L51.8,21.7L51.9,21.7L52.9,21.7L53.8,21.6L54,21.6L54.3,21.5L54.6,21.5L54.7,21.4L55.1,21.4L55.1,21.4L56,21.3L59.6,20.8L60.8,20.6L61.5,20.5L62.1,20.5L65.4,20.5L65.8,20.5L65.8,20.5L66.1,20.5L68.8,20.5L69,20.5L69.3,20.5L69.5,20.6L69.7,20.6L69.9,20.7L70,20.8L70.2,20.9L70.4,21.1L70.8,21.4L71,21.6L71.2,21.7L71.2,21.7L71.4,21.9L71.7,22L71.9,22L72,22.1L72.1,22.1L72.3,22.1L72.5,22.1L73,22.1L73.3,22.1L73.9,22.1L74.3,22.1L75,22.1L75.8,22.1L76.4,22.1L77.3,22L77.8,22L79.7,22L79.8,22L81.2,22L81.7,22L82.8,22L83.1,22L83.2,22L84.8,22L86.3,22L86.3,22L88.3,21.9L88.5,21.9L88.6,21.9L88.7,22L88.7,22L88.7,22.1L88.7,22.5L88.7,22.6L88.8,22.7L88.8,22.7L88.8,22.8L88.9,22.9L89,22.9L89.1,22.9L89.2,22.9L89.4,22.9L89.4,22.9L89.4,22.9L89.4,21.5L89.4,20.8L89.4,20.8L89.4,20.4L89.4,20L89.4,19.7L89.3,19.5L89.3,19.3L89.2,18.5L89.2,18.5L89.2,18.2L89.2,17.9L89.2,17.4L89.3,16.9L89.3,16.6L89.4,16.4L89.6,16.2L89.7,15.9L90.5,15L90.5,15L90.7,14.7L90.8,14.6L90.8,14.5L90.9,14.2L91,13.9L91.1,13.6L91.2,12.8L91.2,12.7L91.3,12.7L91.3,12.7L91.6,11.5L91.7,11.2L91.8,10.9L92.6,9.4L93,8.5L93.1,8.4L93,8.4L93,8.5L92.5,9.4L92.3,9.9L91.7,11.1L91.6,11.2L91.5,11.2L91.5,11.2L91.4,11.2L91.4,11.2L91.3,11.2L91.1,11.2L91,11.2L90.7,11.3L90.4,11.4L90.3,11.4L90.2,11.5L90.2,11.5",km:14.1,min:14},
+ret:{d:"M89.2,13.4L89.2,13.4L89.4,13.2L89.5,13.1L89.7,12.2L89.8,12.1L89.8,12L89.8,12L89.8,11.9L90,11.8L90.1,11.7L90.2,11.6L90.2,11.5L90.3,11.4L90.4,11.4L90.7,11.3L91,11.2L91.1,11.2L91.3,11.2L91.4,11.2L91.4,11.2L91.5,11.2L91.5,11.2L91.6,11.2L91.5,11.6L91.3,12.6L91.2,12.7L91.2,12.8L91.1,13.6L91,13.9L90.9,14.2L90.8,14.5L90.8,14.6L90.7,14.7L90.5,15L90.5,15L89.7,15.9L89.6,16.2L89.4,16.4L89.3,16.6L89.3,16.9L89.2,17.4L89.1,17.7L89.1,18.1L89.1,18.5L89.1,18.7L89.2,19.3L89.3,19.9L89.3,20.1L89.3,20.4L89.3,20.8L89.1,20.8L89,20.8L88.9,20.9L88.8,20.9L88.8,21L88.7,21L88.7,21.1L88.7,21.2L88.7,21.7L88.7,21.7L88.7,21.8L88.6,21.8L88.5,21.8L88.3,21.8L86.3,21.9L86.3,21.9L84.8,21.9L83.2,21.9L83,21.9L82.8,21.9L81.7,21.9L81.2,21.9L79.8,22L77.8,22L76.4,22L75.8,22L75,22L74.3,22L73.9,22L73.3,22L72.8,22L72.5,22L72.3,22L72.1,22L71.9,21.9L71.7,21.9L71.5,21.8L71.3,21.6L71.2,21.6L71,21.5L70.9,21.3L70.4,21L70.3,20.8L70.1,20.7L69.9,20.6L69.7,20.5L69.5,20.5L69.3,20.4L69,20.4L68.8,20.4L66.1,20.4L65.8,20.4L65.8,20.4L65.4,20.4L63.4,20.4L62.6,20.4L62.1,20.4L61.6,20.4L61.2,20.4L59.6,20.6L56.2,21.1L55.5,21.2L55.4,21.2L55.1,21.2L54.7,21.2L54.6,21.2L53.9,21.1L52.7,20.8L52.3,20.7L51.9,20.7L51.4,20.7L51.1,20.7L50.7,20.8L50.5,20.8L49.7,21L49.2,21L48.9,21.1L48.5,21.1L47.9,21L47.8,21L47.4,20.9L46.1,20.6L45.3,20.4L44.9,20.3L44.5,20.2L44,20.2L43.6,20.2L43.5,20.2L43.3,20.2L42.8,20.4L42.5,20.4L42.2,20.5L40.4,21.2L39,21.8L37.2,22.5L36.7,22.6L36.2,22.7L35.2,22.8L33.2,23.1L33,23.1L32,23.4L31.6,23.5L31.3,23.5L31,23.5L30.7,23.5L30.5,23.4L30.2,23.3L30.1,23.3L29.9,23.2L29.8,23.1L29.7,23.3L29.6,23.5L29.6,23.6L29.5,23.8L29.4,24L29.3,24.1L29.1,24.5L28.9,24.9L28.7,25.4L28.5,25.9L28.4,25.9L28.3,26.2L28.2,26.3L28.1,26.7L27.8,27.2L27.6,27.5L27.5,27.8L27.4,28L27.2,28.4L26.8,29.1L26.7,29.2L26.3,29.7L26.2,29.8L26,29.9L25.7,30.1L25.3,30.2L25.3,30.3L24.9,30.4L24.3,30.6L23.4,31L23.1,31.1L22.9,31.2L22.4,31.3L21.9,31.4L21.7,31.4L20.5,31.6L20.2,31.6L20.1,31.6L19.8,31.7L19.5,31.8L19.2,31.9L19,31.9L18.7,32.1L18.5,32.2L18.3,32.4L17.9,32.7L17.6,33L17.5,33.1L17.4,33.2L17.5,33.2L17.6,33.3L17.8,33.4L17.8,33.4L17.8,33.5L18,33.6L18.5,33.9L19,34.3L19.4,34.7L20.2,35.4L20.9,36L21,36.2L21.1,36.3L21.2,36.5L21.4,36.7L21.4,36.8L21.5,36.8L21.5,36.7L21.7,36.6L21.8,36.5L21.9,36.5L21.9,36.4L22,36.3L22.2,36L22.3,35.8L22.3,35.7L22.2,35.6L22.2,35.5L21.7,35.5L21.2,35.5L21,35.5",km:13.3,min:14},
+zs:{d:"M37.6,186.9L37.3,186.9L37.2,187L36.8,186.9L36,186.8L35.6,186.6L35.2,186.5L34.5,186.3L34.1,186.3L33.8,186.1L33.4,185.9L33.2,185.5L33.1,185.3L33.1,184.8L33.1,184.5L32.7,183.7L32.1,182.9L31.8,182L31.8,181.9L31.9,181.8L32.3,181.4L32.8,180.7L32.8,180.4L33.3,179.9L33.7,179.6L33.9,179.5L33.9,179.3L33.9,179.3L33.8,178.8L33.8,178.4L33.8,178L33.1,178.1L32.2,178.1L32,178.1L31.3,178.1L31,178.1L30.9,178.1L30.6,178.1L30.3,178.2L30.1,178.3L30,178.3L29.9,178.4L29.7,178.5L29.6,178.5L29.5,178.6L29.4,178.7L29,178.9L27,180.4L26.8,180.6L26.6,180.8L26.5,180.9L26.3,181.1L26.2,181.2L26.1,181.4L26,181.6L25.9,181.8L25.9,181.9L25.7,183L25.7,182.8L25.4,182.3L25,181.4L24.7,180.9L24.4,180.4L24.3,180.1L24.2,179.9L24.1,178L24.1,177.9L24.1,177.9L24.1,177.7L24,177.6L23.5,177L22.7,176.2L22.3,175.8L22.2,175.7L19.9,173.1L18.4,171.5L16.5,169.3L16.4,169.2L16.4,167.2L16.4,167.1L16.5,167.1L16.7,167.2L16.9,167.1L17.1,167L17.4,166.9L17.6,166.9L17.7,166.8L17.8,166.7L17.8,166.7L17.9,166.7L17.9,166.5L17.8,166.4L17.8,166.2L17.7,166.1L17.6,166L17.6,165.9L17.7,165.4L17.7,165.3L17.8,165.2L17.9,165L18,164.9L18.2,164.8L18.3,164.8L18.4,164.7L18.5,164.5L18.5,164.4L18.4,164.3L18.4,164.2L18.4,164.2L18.7,164.1L18.7,164L19,163.8L19,163.8L19.1,163.9L19.4,163.7L19.5,163.6L19.6,163.7L19.7,163.9L19.8,164L19.8,164",km:6.5,min:12}
+};
+var SPOTS_B={bowuguan:{x:-6.4,y:31.1}};
+
+var COORDS={stay:"110.2073,25.2466",shidi:"110.207,25.095",dongxi:"110.298,25.275",wangcheng:"110.295,25.276",chuanshan:"110.305,25.260",wenhuagong:"110.297,25.272",luohanshan:"110.275,25.245",bolichang:"110.225,25.085",huixianzhen:"110.23,25.07",bowuguan:"110.1715,25.2519"};
+
+/* ============ 基础数据（全部使用固定十六进制色值，兼容旧内核） ============ */
+var DAYS = {1:"#e8553f",2:"#16a085",3:"#2f6fd6",4:"#7a8290"};
+var LEG_DAY = {leg_d1:1,leg_d2a:2,leg_d2b:2,leg_d3a:3,leg_d3b:3,leg_d4a:4,leg_d4b:4};
+var WALKS = [
+  {day:2, d:"M91.6,9.4 Q89.4,10.2 87.2,11.8"},
+  {day:2, d:"M87.2,11.8 Q88.4,13.2 90.6,14.6"}
+];
+var SPOTS = [
+  {id:"stay",       n:"在水一方(住)", full:"在水一方休闲街（住宿大本营）", days:[1,2,3,4], lx:2.2, ly:1,  a:"start",
+   desc:"世纪东路大圆盘附近的休闲街，临桂新区吃住方便，晚上街边夜宵、米粉店多。",
+   meta:"作为每天出发和回程的大本营。临桂↔市区打车约10-30分钟。"},
+  {id:"shidi",      n:"会仙湿地",     full:"会仙喀斯特国家湿地（睦洞七星村）", days:[1], lx:2.2, ly:1, a:"start",
+   desc:"中国最大岩溶湿地，免费进入；坐小木船穿梭峰林倒影之间，国庆也不会太挤。",
+   meta:"临桂出发 39.7km·约38分钟，打车≈96元；建议下午光线好时上船。"},
+  {id:"dongxi",     n:"东西巷",       full:"东西巷 · 明清古街", days:[2], lx:0, ly:-3.2, a:"middle",
+   desc:"桂林老城明清风格街区，连着正阳步行街，适合上午人少时扫街拍照。",
+   meta:"王城外围步行约300米即到。"},
+  {id:"wangcheng",  n:"靖江王城",     full:"靖江王城（外围城墙）", days:[2], lx:-2.2, ly:.9, a:"end",
+   desc:"明代藩王府城，外围城墙漫步免费；登独秀峰要门票且国庆排队，不建议。",
+   meta:"步行可至东西巷、正阳街；去穿山 3.7km·打车≈13元。"},
+  {id:"chuanshan",  n:"穿山公园",     full:"穿山公园（日落机位）", days:[2], lx:2.2, ly:3.4, a:"end",
+   desc:"免费公园，日落时漓江泛橘光、塔山倒影，是老城里最出片的落日点之一。",
+   meta:"日落约18:15-18:30，提前40分钟到；去文化宫 3.6km·≈13元。"},
+  {id:"wenhuagong", n:"文化宫",       full:"文化宫美食街（夜宵）", days:[2,3], lx:-2.2, ly:3.4, a:"end",
+   desc:"本地人的夜宵聚集地：烧烤、米粉、田螺、油茶一站吃齐。",
+   meta:"从穿山 3.6km；罗汉山过来 7.8km·≈22元；回临桂约9km。"},
+  {id:"luohanshan", n:"罗汉山",       full:"罗汉山（高铁晚霞机位）", days:[3], lx:2.2, ly:-1.4, a:"start",
+   desc:"将军路橡胶机械厂旁的小山，15分钟登顶，可拍高铁穿过晚霞的画面。",
+   meta:"临桂出发 11.3km·约11分钟，≈30元；走有台阶的路，别走野路。"},
+  {id:"bolichang",  n:"会仙玻璃田",   full:"会仙玻璃田（沐宦头村）", days:[4], lx:2.2, ly:.9, a:"start",
+   desc:"清晨稻田蓄水如镜，倒映喀斯特山峦，登龙头山俯瞰全景；秋天出片率极高。",
+   meta:"临桂出发 35.7km·约31分钟，≈86元；建议D4直接包车半日。"},
+  {id:"huixianzhen",n:"会仙镇",       full:"会仙镇（农家午餐）", days:[4], lx:2.2, ly:.9, a:"start",
+   desc:"返程前在镇上吃农家菜，招牌是会仙板鸭，配米饭很顶。",
+   meta:"玻璃田过去 2.7km·约6分钟，≈11元。"}
+];
+
+var svgNS = "http://www.w3.org/2000/svg";
+var svg = document.getElementById("map");
+var gR = document.getElementById("g-routes");
+var gS = document.getElementById("g-spots");
+
+/* 老城区三景点真实距离太近，仅显示位置微错开；信息卡与复制坐标仍用真实经纬度 */
+SPOTS_GEO.dongxi = {x:91.6, y:9.4};
+SPOTS_GEO.wangcheng = {x:87.2, y:11.8};
+SPOTS_GEO.wenhuagong = {x:90.6, y:14.6};
+
+function el(t, attrs){
+  var e = document.createElementNS(svgNS, t);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+/* ============ 路线渲染 ============ */
+for (var leg in LEG_DAY){
+  var day = LEG_DAY[leg], geo = ROUTE_GEO[leg];
+  var g = el("g", {"data-day": day});
+  if (leg.indexOf("leg_d4") === 0) g.setAttribute("transform", "translate(0.9,0.7)");
+  g.appendChild(el("path", {d:geo.d, fill:"none", stroke:"#ffffff", "stroke-width":1.7,
+    "stroke-linejoin":"round", "stroke-linecap":"round", opacity:.85}));
+  g.appendChild(el("path", {d:geo.d, fill:"none", stroke:DAYS[day], "stroke-width":1.05,
+    "stroke-linejoin":"round", "stroke-linecap":"round"}));
+  gR.appendChild(g);
+}
+for (var wi = 0; wi < WALKS.length; wi++){
+  var wk = WALKS[wi];
+  var wg = el("g", {"data-day": wk.day});
+  wg.appendChild(el("path", {d:wk.d, fill:"none", stroke:DAYS[wk.day], "stroke-width":.7,
+    "stroke-dasharray":"1 .8", "stroke-linecap":"round"}));
+  gR.appendChild(wg);
+}
+
+/* ============ 景点标记 ============ */
+var panMoved = false;
+for (var si = 0; si < SPOTS.length; si++){
+  (function(s){
+    var p = SPOTS_GEO[s.id], color = DAYS[s.days[0]] || "#9aa4ad";
+    var g = el("g", {"class":"spot", "data-id": s.id, "data-days": s.days.join(","), style:"cursor:pointer"});
+    g.appendChild(el("circle", {cx:p.x, cy:p.y, r:3.4, fill:"transparent"}));
+    g.appendChild(el("circle", {cx:p.x, cy:p.y, r:2.9, fill:color, opacity:.12}));
+    g.appendChild(el("circle", {cx:p.x, cy:p.y, r:1.95, fill:color, stroke:"#ffffff", "stroke-width":.5}));
+    var t = el("text", {x:p.x+s.lx, y:p.y+s.ly, "font-size":2.7, "text-anchor":s.a,
+      fill:"#2b3440", "font-weight":600, style:"pointer-events:none"});
+    t.textContent = s.n;
+    g.appendChild(t);
+    g.addEventListener("click", function(){
+      if (panMoved){ panMoved = false; return; }
+      openSheet(s);
+    });
+    gS.appendChild(g);
+  })(SPOTS[si]);
+}
+
+/* ============ 按天筛选 ============ */
+function filterDay(n){
+  curDay = n;
+  var gs = gR.childNodes;
+  for (var i = 0; i < gs.length; i++){
+    if (gs[i].nodeType !== 1) continue;
+    gs[i].style.display = ((n === 0 || +gs[i].getAttribute("data-day") === n) && planOK(gs[i])) ? "" : "none";
+  }
+  var sp = gS.childNodes;
+  for (var j = 0; j < sp.length; j++){
+    if (sp[j].nodeType !== 1) continue;
+    var ds = (sp[j].getAttribute("data-days") || "").split(",");
+    var hit = false;
+    for (var k = 0; k < ds.length; k++) if (+ds[k] === n) hit = true;
+    sp[j].style.display = ((n === 0 || hit) && planOK(sp[j])) ? "" : "none";
+  }
+  var btns = document.getElementById("tabs").getElementsByTagName("button");
+  for (var b = 0; b < btns.length; b++)
+    btns[b].className = (+btns[b].getAttribute("data-day") === n) ? "on" : "";
+}
+document.getElementById("tabs").addEventListener("click", function(e){
+  var t = e.target;
+  while (t && t.tagName !== "BUTTON") t = t.parentNode;
+  if (!t) return;
+  filterDay(+t.getAttribute("data-day"));
+});
+
+/* ============ 信息卡片 ============ */
+var sheet = document.getElementById("sheet");
+function openSheet(s){
+  document.getElementById("shName").innerHTML =
+    '<span class="daytag" style="background:' + (DAYS[s.days[0]] || "#9aa4ad") + '">D' +
+    s.days.join("/D") + '</span>' + s.full;
+  document.getElementById("shDesc").textContent = s.desc;
+  document.getElementById("shMeta").innerHTML = s.meta;
+  var orig = COORDS[s.id];
+  document.getElementById("shCoord").textContent = orig;
+  sheet.coord = orig;
+  sheet.className = "";
+}
+document.getElementById("sheetClose").onclick = function(){ sheet.className = "hide"; };
+document.getElementById("shCopy").onclick = function(){
+  var tx = sheet.coord || "";
+  function done(){
+    var b = document.getElementById("shCopy");
+    b.textContent = "已复制";
+    setTimeout(function(){ b.textContent = "复制"; }, 1200);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(tx).then(done, function(){ fallbackCopy(tx, done); });
+  } else fallbackCopy(tx, done);
+};
+function fallbackCopy(text, done){
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); done(); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+/* ============ 缩放与平移（viewBox驱动） ============ */
+var VB0 = {x:-12, y:0, w:MAP_W, h:MAP_H};
+var vb = {x:-12, y:0, w:MAP_W, h:MAP_H};
+var MAXZ = 6;                       /* 最大放大倍数 */
+var scalebar = document.getElementById("scalebar");
+function applyVB(){
+  svg.setAttribute("viewBox", vb.x.toFixed(2)+" "+vb.y.toFixed(2)+" "+vb.w.toFixed(2)+" "+vb.h.toFixed(2));
+  scalebar.style.display = (vb.w < MAP_W - .5) ? "none" : "";   /* 放大后比例尺失真，隐藏 */
+}
+function ptVB(cx, cy){
+  var r = svg.getBoundingClientRect();
+  return { x: vb.x + (cx - r.left)/r.width * vb.w,
+           y: vb.y + (cy - r.top)/r.height * vb.h };
+}
+function clampVB(){
+  var pad = (vb.w < VB0.w - .01) ? 6 : 0;
+  var minX = -pad, maxX = VB0.w + pad - vb.w;
+  vb.x = (maxX < minX) ? (minX + maxX)/2 : Math.min(maxX, Math.max(minX, vb.x));
+  var padY = (vb.h < VB0.h - .01) ? 6 : 0;
+  var minY = -padY, maxY = VB0.h + padY - vb.h;
+  vb.y = (maxY < minY) ? (minY + maxY)/2 : Math.min(maxY, Math.max(minY, vb.y));
+}
+function zoomAt(px, py, factor){
+  var w1 = Math.min(VB0.w, Math.max(VB0.w/MAXZ, vb.w/factor));
+  var k = w1 / vb.w;
+  vb.x = px - (px - vb.x) * k;
+  vb.y = py - (py - vb.y) * k;
+  vb.w = w1; vb.h = w1 * MAP_H / MAP_W;
+  clampVB(); applyVB();
+}
+function resetView(){ vb = {x:0, y:0, w:VB0.w, h:VB0.h}; applyVB(); }
+function vbCenter(){ return {x:vb.x + vb.w/2, y:vb.y + vb.h/2}; }
+
+/* 滚轮缩放（以鼠标位置为锚点） */
+svg.addEventListener("wheel", function(e){
+  e.preventDefault();
+  var p = ptVB(e.clientX, e.clientY);
+  zoomAt(p.x, p.y, (e.deltaY < 0) ? 1.18 : 1/1.18);
+}, {passive:false});
+
+/* 鼠标拖动平移 */
+var drag = null;
+svg.addEventListener("mousedown", function(e){
+  if (e.button !== 0) return;
+  drag = {x:e.clientX, y:e.clientY, vx:vb.x, vy:vb.y, moved:false};
+  svg.setAttribute("class", "panning");
+});
+window.addEventListener("mousemove", function(e){
+  if (!drag) return;
+  var r = svg.getBoundingClientRect();
+  var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  vb.x = drag.vx - dx/r.width * vb.w;
+  vb.y = drag.vy - dy/r.height * vb.h;
+  clampVB(); applyVB();
+});
+window.addEventListener("mouseup", function(){
+  if (drag && drag.moved) panMoved = true;
+  drag = null;
+  svg.setAttribute("class", "");
+});
+svg.addEventListener("dblclick", function(e){
+  e.preventDefault();
+  var p = ptVB(e.clientX, e.clientY);
+  zoomAt(p.x, p.y, 1.9);
+});
+
+/* 触屏：单指平移 + 双指捏合缩放 */
+function tDist(a, b){
+  var dx = a.clientX - b.clientX, dy = a.clientY - b.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+var tc = null;
+svg.addEventListener("touchstart", function(e){
+  if (e.touches.length === 1){
+    var t = e.touches[0];
+    tc = {mode:1, x:t.clientX, y:t.clientY, vx:vb.x, vy:vb.y, moved:false};
+  } else if (e.touches.length >= 2){
+    var a = e.touches[0], b = e.touches[1];
+    tc = {mode:2, d0:tDist(a,b), w0:vb.w, x0:vb.x, y0:vb.y,
+          cx0:(a.clientX+b.clientX)/2, cy0:(a.clientY+b.clientY)/2};
+  }
+}, {passive:false});
+svg.addEventListener("touchmove", function(e){
+  e.preventDefault();
+  if (!tc) return;
+  var r = svg.getBoundingClientRect();
+  if (tc.mode === 1 && e.touches.length === 1){
+    var t = e.touches[0];
+    var dx = t.clientX - tc.x, dy = t.clientY - tc.y;
+    if (Math.abs(dx) + Math.abs(dy) > 4) tc.moved = true;
+    vb.x = tc.vx - dx/r.width * vb.w;
+    vb.y = tc.vy - dy/r.height * vb.h;
+    clampVB(); applyVB();
+  } else if (tc.mode === 2 && e.touches.length >= 2){
+    var a = e.touches[0], b = e.touches[1];
+    var d = tDist(a, b);
+    var w1 = Math.min(VB0.w, Math.max(VB0.w/MAXZ, tc.w0 * tc.d0 / d));
+    var k = w1 / tc.w0;
+    var cx = (a.clientX+b.clientX)/2, cy = (a.clientY+b.clientY)/2;
+    /* 锚点 = 捏合开始时两指中心对应的viewBox坐标；缩放后让其跟随新中心 */
+    var avx = tc.x0 + (tc.cx0 - r.left)/r.width * tc.w0;
+    var avy = tc.y0 + (tc.cy0 - r.top)/r.height * (tc.w0 * MAP_H / MAP_W);
+    vb.w = w1; vb.h = w1 * MAP_H / MAP_W;
+    vb.x = avx - (avx - tc.x0) * k - (cx - tc.cx0)/r.width * vb.w;
+    vb.y = avy - (avy - tc.y0) * k - (cy - tc.cy0)/r.height * vb.h;
+    clampVB(); applyVB();
+  }
+}, {passive:false});
+svg.addEventListener("touchend", function(e){
+  if (tc && tc.mode === 1 && tc.moved) panMoved = true;
+  if (e.touches.length === 0) tc = null;
+  else if (e.touches.length === 1 && tc && tc.mode === 2){
+    var t = e.touches[0];
+    tc = {mode:1, x:t.clientX, y:t.clientY, vx:vb.x, vy:vb.y, moved:true};
+  }
+});
+
+/* 缩放按钮 */
+document.getElementById("zin").onclick = function(){ var c = vbCenter(); zoomAt(c.x, c.y, 1.45); };
+document.getElementById("zout").onclick = function(){ var c = vbCenter(); zoomAt(c.x, c.y, 1/1.45); };
+document.getElementById("zreset").onclick = resetView;
+
+/* 支持 #day=N 直接打开某天视图 */
+var hm = location.hash.match(/day=([1-4])/);
+if (hm) filterDay(+hm[1]);
+/* ============ 方案切换（正常 / 备案1 雨天版） ============ */
+var PLAN = "normal";
+var curDay = 0;
+function planOK(elm){
+  var dp = elm.getAttribute("data-plan");
+  return !dp || dp === PLAN;
+}
+var NORMAL_LEGS = [
+  {k:"leg_d1",day:1},{k:"leg_d2a",day:2},{k:"leg_d2b",day:2},{k:"leg_d3a",day:3},
+  {k:"leg_d3b",day:3},{k:"leg_d4a",day:4},{k:"leg_d4b",day:4}
+];
+var BACKUP_LEGS = [
+  {k:"bm",day:1,b:1},{k:"ot",day:2,b:1},{k:"ret",day:2,b:1},{k:"leg_d3a",day:3},
+  {k:"leg_d3b",day:3},{k:"leg_d4a",day:4},{k:"leg_d4b",day:4},{k:"leg_d1",day:4}
+];
+function renderRoutes(){
+  while (gR.firstChild) gR.removeChild(gR.firstChild);
+  var legs = (PLAN === "backup") ? BACKUP_LEGS : NORMAL_LEGS;
+  for (var i = 0; i < legs.length; i++){
+    var L = legs[i], geo = L.b ? ROUTE_B[L.k] : ROUTE_GEO[L.k];
+    var g = el("g", {"data-day": L.day, "data-plan": PLAN});
+    g.appendChild(el("path", {d:geo.d, fill:"none", stroke:"#ffffff", "stroke-width":1.7,
+      "stroke-linejoin":"round", "stroke-linecap":"round", opacity:.85}));
+    g.appendChild(el("path", {d:geo.d, fill:"none", stroke:DAYS[L.day], "stroke-width":1.05,
+      "stroke-linejoin":"round", "stroke-linecap":"round"}));
+    gR.appendChild(g);
+  }
+  for (var wi = 0; wi < WALKS.length; wi++){
+    var wk = WALKS[wi];
+    var wg = el("g", {"data-day": wk.day, "data-plan": PLAN});
+    wg.appendChild(el("path", {d:wk.d, fill:"none", stroke:DAYS[wk.day], "stroke-width":.7,
+      "stroke-dasharray":"1 .8", "stroke-linecap":"round"}));
+    gR.appendChild(wg);
+  }
+}
+/* 备案专属景点：桂林博物馆（真实经纬度在地图西侧，viewBox 已扩至 -12） */
+SPOTS_GEO.bowuguan = SPOTS_B.bowuguan;
+SPOTS.push({id:"bowuguan", n:"桂林博物馆", full:"桂林博物馆（一院两馆 · 雨天首选）", days:[1], lx:2.2, ly:1, a:"start",
+  desc:"国家一级博物馆，12个展厅：明代梅瓶、桂林抗战文化、广西民族风情，全程室内；隔壁就是桂林图书馆。",
+  meta:"免费，凭身份证入馆；9:00-17:00（16:30停止入馆）；周一闭馆（法定节假日一般正常开放）；临桂打车约6分钟。"});
+(function(s){
+  var p = SPOTS_GEO[s.id], color = DAYS[s.days[0]] || "#9aa4ad";
+  var g = el("g", {"class":"spot", "data-id": s.id, "data-days": s.days.join(","), "data-plan":"backup", style:"cursor:pointer"});
+  g.appendChild(el("circle", {cx:p.x, cy:p.y, r:3.4, fill:"transparent"}));
+  g.appendChild(el("circle", {cx:p.x, cy:p.y, r:2.9, fill:color, opacity:.12}));
+  g.appendChild(el("circle", {cx:p.x, cy:p.y, r:1.95, fill:color, stroke:"#ffffff", "stroke-width":.5}));
+  var t = el("text", {x:p.x+s.lx, y:p.y+s.ly, "font-size":2.7, "text-anchor":s.a,
+    fill:"#2b3440", "font-weight":600, style:"pointer-events:none"});
+  t.textContent = s.n;
+  g.appendChild(t);
+  g.addEventListener("click", function(){
+    if (panMoved){ panMoved = false; return; }
+    openSheet(s);
+  });
+  gS.appendChild(g);
+})(SPOTS[SPOTS.length-1]);
+
+var LG = {
+  normal:{lg1:"D1 会仙湿地", lg2:"D2 老城穿山", lg3:"D3 罗汉山", lg4:"D4 玻璃田"},
+  backup:{lg1:"D1 博物馆", lg2:"D2 老城逛吃", lg3:"D3 罗汉山·赌日落", lg4:"D4 玻璃田+湿地"}
+};
+function applyPlan(p){
+  PLAN = p;
+  renderRoutes();
+  filterDay(curDay);
+  var nb = (p === "backup");
+  document.getElementById("plan-normal").style.display = nb ? "none" : "";
+  document.getElementById("plan-backup").style.display = nb ? "" : "none";
+  document.getElementById("cost-normal").style.display = nb ? "none" : "";
+  document.getElementById("cost-backup").style.display = nb ? "" : "none";
+  var lg = LG[p];
+  for (var k in lg){ var t = document.getElementById(k); if (t) t.textContent = lg[k]; }
+  document.getElementById("planNote").textContent = nb ?
+    "雨天调序：室内逛吃优先 · 山水集中到晴日" : "原计划 · 适合晴天出行";
+}
+document.getElementById("planSel").onchange = function(){ applyPlan(this.value); };
+var navEl = document.getElementById("tabs"), pbEl = document.getElementById("planbar");
+function fitPlanbar(){ pbEl.style.top = navEl.offsetHeight + "px"; }
+fitPlanbar();
+if (window.addEventListener) window.addEventListener("resize", fitPlanbar);
+applyPlan("normal");
+</script>
+</body>
+</html>
